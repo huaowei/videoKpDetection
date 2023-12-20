@@ -1,6 +1,0 @@
-train: shuishan/zggj/train/images
-val: shuishan/zggj/val/images
-nc: 2
-names:
-- title
-- content
