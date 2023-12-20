@@ -1,0 +1,7 @@
+train: shuishan/xz/zr_3/train/images
+val: shuishan/xz/zr_3/val/images
+nc: 3
+names:
+- kp
+- 1
+- 0

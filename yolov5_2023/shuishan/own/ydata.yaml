@@ -1,0 +1,6 @@
+train: shuishan/own/train/images
+val: shuishan/own/val/images
+nc: 2
+names:
+- title
+- content
