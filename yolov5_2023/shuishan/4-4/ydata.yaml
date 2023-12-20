@@ -1,8 +1,0 @@
-train: shuishan/4-4/train/images
-val: shuishan/4-4/val/images
-nc: 4
-names:
-- 0
-- 3
-- 2
-- 1

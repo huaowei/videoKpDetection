@@ -6,6 +6,7 @@ import re
 import unicodedata
 from paddleocr import PaddleOCR
 
+
 class VideoProcessor:
     def __init__(self, video_name, input_directory="./video", interval_seconds=10):
         self.video_name = video_name
