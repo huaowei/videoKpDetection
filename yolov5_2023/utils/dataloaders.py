@@ -278,24 +278,29 @@ class LoadImages:
         return self
 
     def __next__(self):
+        
         if self.count == self.nf:
             raise StopIteration
         path = self.files[self.count]
+        
 
         if self.video_flag[self.count]:
             # Read video
             self.mode = 'video'
-            for _ in range(self.vid_stride):
-                self.cap.grab()
-            ret_val, im0 = self.cap.retrieve()
-            while not ret_val:
-                self.count += 1
-                self.cap.release()
-                if self.count == self.nf:  # last video
-                    raise StopIteration
-                path = self.files[self.count]
-                self._new_video(path)
+            if self.frame == 0:
                 ret_val, im0 = self.cap.read()
+            else:
+                for _ in range(self.vid_stride):
+                    self.cap.grab()
+                ret_val, im0 = self.cap.retrieve()
+                while not ret_val:
+                    self.count += 1
+                    self.cap.release()
+                    if self.count == self.nf:  # last video
+                        raise StopIteration
+                    path = self.files[self.count]
+                    self._new_video(path)
+                    ret_val, im0 = self.cap.read()
 
             self.frame += 1
             # im0 = self._cv2_rotate(im0)  # for use if cv2 autorotation is False
