@@ -5,7 +5,7 @@ import sys
 import jieba
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from nltk.tokenize import word_tokenize
+# from nltk.tokenize import word_tokenize
 
 
 class TextProcessor:
@@ -85,12 +85,14 @@ class TextProcessor:
                 # 用于存储结果的列表
                 result2 = []
                 # 遍历每个字符串
-                words2 = list(jieba.cut(text)) + word_tokenize(text)
+                words2 = list(jieba.cut(text)) 
+                # + word_tokenize(text)
                 words2 = [
                     word
                     for word in words2
                     if re.match(r"^[\u4e00-\u9fa5a-zA-Z0-9]+$", word) and len(word) > 3
-                ] + word_tokenize(text)
+                ] 
+                # + word_tokenize(text)
                 print(words2)
                 for item in words2:
                     # 初始化当前子集
