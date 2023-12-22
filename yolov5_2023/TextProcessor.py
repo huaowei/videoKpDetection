@@ -11,12 +11,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 class TextProcessor:
     def __init__(self, video_name):
         self.video_name = video_name
-        self.image_dir = os.path.join("../new_yolo_res", video_name)
-        self.label_dir = os.path.join("../new_yolo_res", video_name, "labels")
+        self.image_dir = os.path.join("./new_yolo_res", video_name)
+        self.label_dir = os.path.join("./new_yolo_res", video_name, "labels")
         self.time_interval = 10
-        self.input_dir = os.path.join("../result_all_txt", video_name)
-        self.output_dir = os.path.join("../label_hb_txt", video_name)
-        self.folder_path = os.path.join("../result_all_txt", video_name)
+        self.input_dir = os.path.join("./result_all_txt", video_name)
+        self.output_dir = os.path.join("./label_hb_txt", video_name)
+        self.folder_path = os.path.join("./result_all_txt", video_name)
         self.image_files = [f for f in os.listdir(self.image_dir) if f.endswith(".jpg")]
         self.nums_pic = len(self.image_files)
         self.label_files = [f for f in os.listdir(self.label_dir) if f.endswith(".txt")]
@@ -158,8 +158,11 @@ class TextProcessor:
 
     def which_file(self, xb):
         files = os.listdir(self.folder_path)
-        if len(files) >= xb:
-            res_file = files[xb]  # 第2个文件，索引从0开始
+        # 按照文件名中的数字部分从小到大排序
+        sorted_files = sorted(files, key=lambda x: int(os.path.splitext(x)[0].split("_")[-1]))
+        if len(sorted_files) >= xb:
+            res_file = sorted_files[xb]  # 第2个文件，索引从0开始
+            # print(sorted_files[0])
             file_order = int(os.path.splitext(res_file)[0].split("_")[-1])
             return file_order - 1
         else:
@@ -182,6 +185,7 @@ class TextProcessor:
             ]
         )
         output_list.append((input_list[-1][0] + 1, maxnum))
+        print(output_list)
         return output_list
 
     def clear_txt_files(self, directory_path):
