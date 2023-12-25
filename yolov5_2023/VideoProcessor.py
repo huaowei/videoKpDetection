@@ -112,9 +112,9 @@ class VideoProcessor:
             ),
         )
         detect_process.start()
-        time.sleep(10)
+        time.sleep(25)
         # 终止进程
-        detect_process.terminate()  # 终止进程
+        # detect_process.terminate()  # 终止进程
         # detect_process.join()  # 等待进程结束
         
         frames = queue.get()
@@ -208,6 +208,6 @@ class VideoProcessor:
 
 
 if __name__ == "__main__":
-    video_name = sys.argv[1] if len(sys.argv) > 1 else "3.6"
+    video_name = sys.argv[1] if len(sys.argv) > 1 else "4-4"
     processor = VideoProcessor(video_name)
     processor.process_all_mp4_files()

@@ -13,7 +13,7 @@ class TextProcessor:
         self.video_name = video_name
         self.image_dir = os.path.join("./yolo_res", video_name)
         self.label_dir = os.path.join("./yolo_res", video_name, "labels")
-        self.time_interval = 10
+        self.time_interval = 1
         self.input_dir = os.path.join("./result_all_txt", video_name)
         self.output_dir = os.path.join("./label_hb_txt", video_name)
         self.folder_path = os.path.join("./result_all_txt", video_name)
@@ -45,8 +45,8 @@ class TextProcessor:
                 if self.check_first_column(file_path):
                     files_without_digits.append(filename)
                     self.number_list.append(os.path.splitext(filename)[0].split("_")[-1])
-                    os.remove(file_path)
-                    os.remove(os.path.join(self.input_dir,filename))
+                    # os.remove(file_path)
+                    # os.remove(os.path.join(self.input_dir,filename))
         print(self.number_list) 
         return files_without_digits
     
@@ -273,6 +273,6 @@ class TextProcessor:
 
 
 if __name__ == "__main__":
-    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "3.6"
+    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "4-4"
     text_processor = TextProcessor(video_name_arg)
     text_processor.process_knowledge_points()

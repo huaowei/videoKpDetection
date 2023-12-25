@@ -261,7 +261,7 @@ def run(
                             line = (
                                 (cls, *xywh, conf) if save_conf else (cls, *xywh)
                             )  # label format
-                            with open(f"{txt_path}.txt", "a") as f:
+                            with open(f"{txt_path}.txt", "w") as f:
                                 f.write(("%g " * len(line)).rstrip() % line + "\n")
 
                         if save_img or save_crop or view_img:  # Add bbox to image
