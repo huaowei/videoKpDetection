@@ -95,9 +95,9 @@ class KnowledgePointProcessor:
                 word_dict["segment"] = unique_list
                 filtered_res.append(word_dict)
         # print(filtered_res)
-        filtered_res.append({'kp_id': 100000000, 'kp_name': '线性回归', 'segment': ['线性', '回归']})
-        filtered_res.append({'kp_id': 100000001, 'kp_name': '多项式回归', 'segment': ['多项式', '回归']})
-        filtered_res.append({'kp_id': 100000002, 'kp_name': '回归模型', 'segment': ['模型', '回归']})
+        # filtered_res.append({'kp_id': 100000000, 'kp_name': '线性回归', 'segment': ['线性', '回归']})
+        # filtered_res.append({'kp_id': 100000001, 'kp_name': '多项式回归', 'segment': ['多项式', '回归']})
+        # filtered_res.append({'kp_id': 100000002, 'kp_name': '回归模型', 'segment': ['模型', '回归']})
         return filtered_res
 
     def spilt_kp_word_true(self, result_lists):

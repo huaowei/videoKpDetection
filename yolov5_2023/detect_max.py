@@ -116,6 +116,7 @@ def run(
     vid_stride=1,  # video frame-rate stride
 ):
     source = str(source)
+    pic_num = 1
     save_img = not nosave and not source.endswith(".txt")  # save inference images
     is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
     is_url = source.lower().startswith(("rtsp://", "rtmp://", "http://", "https://"))
@@ -227,9 +228,10 @@ def run(
             save_path = str(save_dir / p.name)  # im.jpg
             txt_path = str(save_dir / "labels" / p.stem) + (
 
-                "" if dataset.mode == "image" else f"_{frame:03d}"
+                "" if dataset.mode == "image" else f"_{frame:03d}_"
 
-            )  # im.txt
+            )+str(pic_num)  # im.txt
+            pic_num += 1
             s += "%gx%g " % im.shape[2:]  # print string
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             imc = im0.copy() if save_crop else im0  # for save_crop
