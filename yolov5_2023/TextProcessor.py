@@ -167,6 +167,7 @@ class TextProcessor:
         print(lowest_10)
         data = lowest_10
         data = lowest_10 = [item for item in data if item[0] not in self.number_list]
+
         new_data = []
 
         for item in data:

@@ -45,6 +45,7 @@ if str(ROOT) not in sys.path:
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 
+
 from utils.plotting import Annotator, colors, save_one_box
 
 from models.common import DetectMultiBackend
@@ -85,8 +86,8 @@ def compute_difference_rate(img1, img2):
 
 @smart_inference_mode()
 def run(
-    weights=ROOT
-    / "/home/huaowei/project/videoKpDetection/yolov5_2023/train_res/ppt_cdla_zr_500_1/weights/best.pt",  # model path or triton URL
+
+    weights=ROOT / "train_res/ppt_cdla_zr_500_1/weights/best.pt",  # model path or triton URL
     source=ROOT / "0",  # file/dir/URL/glob/screen/0(webcam)
     data=ROOT / "data/coco128.yaml",  # dataset.yaml path
     imgsz=(640, 640),  # inference size (height, width)
@@ -100,6 +101,7 @@ def run(
     save_conf=False,  # save confidences in --save-txt labels
     save_crop=False,  # save cropped prediction boxes
     nosave=True,  # do not save images/videos
+    nosave=True,  # do not save images/videos
     classes=None,  # filter by class: --class 0, or --class 0 2 3
     agnostic_nms=False,  # class-agnostic NMS
     augment=False,  # augmented inference
@@ -107,6 +109,7 @@ def run(
     update=False,  # update all models
     project=ROOT / "runs/detect",  # save results to project/name
     name="exp",  # save results to project/name
+    exist_ok=True,  # existing project/name ok, do not increment
     exist_ok=True,  # existing project/name ok, do not increment
     line_thickness=0.01,  # bounding box thickness (pixels)
     hide_labels=False,  # hide labels
@@ -232,6 +235,7 @@ def run(
 
             )+str(pic_num)  # im.txt
             pic_num += 1
+
             s += "%gx%g " % im.shape[2:]  # print string
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             imc = im0.copy() if save_crop else im0  # for save_crop
@@ -341,7 +345,9 @@ def run(
         LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
+
     return frames
+
 
 
 def parse_opt():
@@ -350,8 +356,7 @@ def parse_opt():
         "--weights",
         nargs="+",
         type=str,
-        default=ROOT
-        / "/home/huaowei/project/videoKpDetection/yolov5_2023/train_res/ppt_cdla_zr_500_1/weights/best.pt",
+        default=ROOT / "train_res/ppt_cdla_zr_500_1/weights/best.pt",
         help="model path or triton URL",
     )
     parser.add_argument(
