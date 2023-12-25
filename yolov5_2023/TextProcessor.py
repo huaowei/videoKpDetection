@@ -13,7 +13,7 @@ class TextProcessor:
         self.video_name = video_name
         self.image_dir = os.path.join("./yolo_res", video_name)
         self.label_dir = os.path.join("./yolo_res", video_name, "labels")
-        self.time_interval = 10
+        self.time_interval = 1
         self.input_dir = os.path.join("./result_all_txt", video_name)
         self.output_dir = os.path.join("./label_hb_txt", video_name)
         self.folder_path = os.path.join("./result_all_txt", video_name)
@@ -44,9 +44,9 @@ class TextProcessor:
                 file_path = os.path.join(directory_path, filename)
                 if self.check_first_column(file_path):
                     files_without_digits.append(filename)
-                    self.number_list.append(os.path.splitext(filename)[0].split("_")[-1])
-                    os.remove(file_path)
-                    os.remove(os.path.join(self.input_dir,filename))
+                    self.number_list.append(int(os.path.splitext(filename)[0].split("_")[-1]))
+                    # os.remove(file_path)
+                    # os.remove(os.path.join(self.input_dir,filename))
         print(self.number_list) 
         return files_without_digits
     
@@ -166,17 +166,19 @@ class TextProcessor:
         print("low10:")
         print(lowest_10)
         data = lowest_10
+        data = lowest_10 = [item for item in data if item[0] not in self.number_list]
+
         new_data = []
 
         for item in data:
             add_item = True
-            if item[0] < 2:
+            if item[0] < 1:
                 add_item = False
             elif item[0] in [x[0] for x in new_data]:
                 add_item = False
             else:
                 for existing_item in new_data:
-                    if abs(item[0] - existing_item[0]) <= 2:
+                    if abs(item[0] - existing_item[0]) <= 1:
                         add_item = False
                         break
             if add_item:
@@ -273,6 +275,6 @@ class TextProcessor:
 
 
 if __name__ == "__main__":
-    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "3.6"
+    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "4-4"
     text_processor = TextProcessor(video_name_arg)
     text_processor.process_knowledge_points()

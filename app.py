@@ -9,6 +9,10 @@ import re
 import requests
 from flask_cors import CORS
 
+from yolov5_2023.VideoProcessor import *
+from yolov5_2023.TextProcessor import *
+from matchProcess import *
+
 # 允许上传的文件扩展名的集合
 ALLOWED_EXTENSIONS = {"txt", "xlx", "xlsx", "csv", "mp4"}
 # 返回三元组文件

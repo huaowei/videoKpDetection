@@ -19,7 +19,7 @@ class KnowledgePointProcessor:
         self.result_filename = f"result/{video_name}_0.txt"
         self.flag_have_first_title = False
         self.father = -1
-        self.kp_num = 3
+        self.kp_num = 5
         self.sor = DB(
             host="47.102.204.29",
             user="shuishandb",
@@ -95,7 +95,6 @@ class KnowledgePointProcessor:
                 word_dict["segment"] = unique_list
                 filtered_res.append(word_dict)
         # print(filtered_res)
-
         return filtered_res
 
     def spilt_kp_word_true(self, result_lists):
@@ -144,7 +143,7 @@ class KnowledgePointProcessor:
             kp_id = kp["kp_id"]
             kp_name = kp["kp_name"]
             segment = kp["segment"]
-            kp_occurrences[kp_name] = (31 * text_content.count(kp_name), kp_id)
+            kp_occurrences[kp_name] = (10 * text_content.count(kp_name), kp_id)
             for word in segment:
                 kp_occurrences[kp_name] = (
                     kp_occurrences[kp_name][0] + text_content.count(word),
@@ -428,6 +427,7 @@ class KnowledgePointProcessor:
         l2_id = sorted(l2_id, key=lambda x: x["kp_id"])
         # 存放有效的子节点序号
         effective_list = []
+        
         for item in l2_id:
             kp_id = item["kp_id"]
             effective_list.append(self.sor.get_all_2(query_l2, (kp_id,)))
@@ -435,7 +435,6 @@ class KnowledgePointProcessor:
         # print(effective_list)
         # 创建新的数据结构用于存储筛选后的元素
         filtered_data = {}
-
         # 遍历数据结构并筛选出内层数据出现在指定的列表中的元素
         for key, inner_dict in eval(data_).items():
             filtered_inner_dict = {}
@@ -677,7 +676,7 @@ class KnowledgePointProcessor:
 
 
 if __name__ == "__main__":
-    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "3.6"
+    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "4-4"
     processor = KnowledgePointProcessor(video_name_arg)
     processor.process_knowledge_points()
     processor.dict_convert_tuple()

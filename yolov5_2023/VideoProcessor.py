@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 import os
 import sys
 import time
@@ -10,8 +10,11 @@ from paddleocr import PaddleOCR
 import torch
 import detect_max
 
+from skimage.metrics import structural_similarity as ssim
+
+
 class VideoProcessor:
-    def __init__(self, video_name, input_directory="./video", interval_seconds=10):
+    def __init__(self, video_name, input_directory="./video", interval_seconds=1):
         self.video_name = video_name
         self.input_directory = input_directory
         self.interval_seconds = interval_seconds
@@ -22,6 +25,7 @@ class VideoProcessor:
         os.makedirs(self.result_folder, exist_ok=True)
         os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
         self.ocr = None
+        self.similarity_threshold = 0.9
     def clean_filename(self, filename):
         cleaned_filename = re.sub(r"[^\w\-_.() ]", "", filename)
         cleaned_filename = (
@@ -51,17 +55,40 @@ class VideoProcessor:
         # 使用正则表达式在数字和非数字之间插入空格
         new_text = re.sub(r"(\d+)(\D)", r"\1 \2", new_text)
         return new_text
+
     # 定义一个函数，用于运行 detect_max.run
-    def run_detection(self,video_folder, yolo_folder, video_name, interval_frames):
-        detect_max.run(
-            source=video_folder,
-            save_txt=True,
-            save_conf=True,
-            project=yolo_folder,
-            name=video_name,
-            device='0',
-            vid_stride=interval_frames
+    def run_detection(
+        self, queue, video_folder, yolo_folder, video_name, interval_frames
+    ):
+        queue.put(
+            detect_max.run(
+                source=video_folder,
+                save_txt=True,
+                save_conf=True,
+                project=yolo_folder,
+                name=video_name,
+                device="0",
+                vid_stride=interval_frames,
+            )
         )
+
+    # compute sim 1
+    def image_similarity(self, img1, img2):
+        gray_img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+        gray_img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+        print(ssim(gray_img1, gray_img2))
+        return ssim(gray_img1, gray_img2)
+
+    # compute sim 2
+    def compute_difference_rate(self, frame1, frame2):
+        gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+        gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+        diff = cv2.absdiff(gray1, gray2)
+        _, thresh = cv2.threshold(diff, 25, 255, cv2.THRESH_BINARY)
+        non_zero_count = cv2.countNonZero(thresh)
+        return non_zero_count / (frame1.shape[0] * frame1.shape[1])
+
+
     def extract_frames(self, video_file):
         cap = cv2.VideoCapture(video_file)
         if not cap.isOpened():
@@ -74,48 +101,100 @@ class VideoProcessor:
         # detect_max.run(source=self.video_folder,save_txt=True,save_conf=True,project=self.yolo_folder,name=self.video_name,device='0',vid_stride=interval_frames)
         # torch.cuda.empty_cache()
         # 创建一个进程并启动目标检测
-        detect_process = Process(target=self.run_detection, args=(self.video_folder, self.yolo_folder, self.video_name, interval_frames))
+        queue = Queue()
+        detect_process = Process(
+            target=self.run_detection,
+            args=(
+                queue,
+                self.video_folder,
+                self.yolo_folder,
+                self.video_name,
+                interval_frames,
+            ),
+        )
         detect_process.start()
-        time.sleep(10)
+        time.sleep(25)
         # 终止进程
+        # detect_process.terminate()  # 终止进程
+        # detect_process.join()  # 等待进程结束
+        
+        frames = queue.get()
+        print(frames, type(frames), frames.shape)
         detect_process.terminate()
-        detect_process.join()  # 等待进程结束
         frame_count = 0
         image_count = 1
-        self.ocr=PaddleOCR(use_angle_cls=True, lang="ch")
+        self.ocr = PaddleOCR(use_angle_cls=True, lang="ch")
+        cleaned_video_name = self.clean_filename(video_name)
 
+        for frame in frames[1:]:
+            result = self.ocr.ocr(frame)
+            merged_text = ""
+            for idx in range(len(result)):
+                res = result[idx]
+                for line in res:
+                    if line[1][1] > 0.8:
+                        new_txt = self.replace_punctuation_with_space(line[1][0])
+                        merged_text += new_txt + "\n"
+                        print(new_txt)
 
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
+            txt_filename = f"{cleaned_video_name}_{image_count:03d}" + ".txt"
+            txt_filepath = os.path.join(self.result_folder, txt_filename)
 
-            if frame_count % interval_frames == 0 :
-                print(frame_count)
-                video_name = os.path.splitext(os.path.basename(video_file))[0]
-                cleaned_video_name = self.clean_filename(video_name)
-
-                result = self.ocr.ocr(frame)
-
-                merged_text = ""
-                for idx in range(len(result)):
-                    res = result[idx]
-                    for line in res:
-                        if line[1][1] > 0.8:
-                            new_txt = self.replace_punctuation_with_space(line[1][0])
-                            merged_text += new_txt + "\n"
-                            print(new_txt)
-
-                txt_filename = f"{cleaned_video_name}_{image_count:03d}" + ".txt"
-                txt_filepath = os.path.join(self.result_folder, txt_filename)
-
-                with open(txt_filepath, "w", encoding="utf-8") as txt_file:
-                    txt_file.write(merged_text)
-                image_count += 1
-
+            with open(txt_filepath, "w", encoding="utf-8") as txt_file:
+                txt_file.write(merged_text)
+            image_count += 1
             frame_count += 1
 
-        cap.release()
+        # prev_frame = None
+        # t_res = ""
+
+        # while True:
+        #     ret, frame = cap.read()
+        #     if not ret:
+        #         break
+
+                # if frame_count % interval_frames == 0:
+                #     print(frame_count)
+                #     video_name = os.path.splitext(os.path.basename(video_file))[0]
+                #     cleaned_video_name = self.clean_filename(video_name)
+                #     if (
+                #         prev_frame is not None
+                #         and self.compute_difference_rate(frame, prev_frame) <= 0.1
+                #     ):
+                #         result = t_res
+                #         print(
+                #             f"Frame {frame_count} is similar to the previous frame. Skipping..."
+                #         )
+                #     else:
+                #         result = self.ocr.ocr(frame)
+                #         t_res = result
+
+                # if prev_frame is not None and self.image_similarity(frame, prev_frame) >= self.similarity_threshold:
+                #     result = t_res
+                #     print(f"Frame {frame_count} is similar to the previous frame. Skipping...")
+                # else:
+                #     result = self.ocr.ocr(frame)
+                #     t_res = result
+
+            #     merged_text = ""
+            #     for idx in range(len(result)):
+            #         res = result[idx]
+            #         for line in res:
+            #             if line[1][1] > 0.8:
+            #                 new_txt = self.replace_punctuation_with_space(line[1][0])
+            #                 merged_text += new_txt + "\n"
+            #                 print(new_txt)
+
+            #     txt_filename = f"{cleaned_video_name}_{image_count:03d}" + ".txt"
+            #     txt_filepath = os.path.join(self.result_folder, txt_filename)
+
+            #     with open(txt_filepath, "w", encoding="utf-8") as txt_file:
+            #         txt_file.write(merged_text)
+            #     image_count += 1
+
+            # frame_count += 1
+
+        # cap.release()
 
     def process_all_mp4_files(self):
         self.rename_videos()
@@ -130,6 +209,6 @@ class VideoProcessor:
 
 
 if __name__ == "__main__":
-    video_name = sys.argv[1] if len(sys.argv) > 1 else "3.6"
+    video_name = sys.argv[1] if len(sys.argv) > 1 else "4-4"
     processor = VideoProcessor(video_name)
     processor.process_all_mp4_files()
