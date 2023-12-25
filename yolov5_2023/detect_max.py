@@ -34,6 +34,7 @@ import os
 import platform
 import sys
 from pathlib import Path
+import numpy as np
 
 import torch
 
@@ -73,9 +74,19 @@ from utils.general import (
 from utils.torch_utils import select_device, smart_inference_mode
 
 
+def compute_difference_rate(img1, img2):
+    gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+    diff = cv2.absdiff(gray1, gray2)
+    _, thresh = cv2.threshold(diff, 25, 255, cv2.THRESH_BINARY)
+    non_zero_count = cv2.countNonZero(thresh)
+    return non_zero_count / (img1.shape[0] * img1.shape[1])
+
+
 @smart_inference_mode()
 def run(
-    weights=ROOT / "/home/huaowei/project/videoKpDetection/yolov5_2023/train_res/ppt_cdla_zr_500_1/weights/best.pt",  # model path or triton URL
+    weights=ROOT
+    / "/home/huaowei/project/videoKpDetection/yolov5_2023/train_res/ppt_cdla_zr_500_1/weights/best.pt",  # model path or triton URL
     source=ROOT / "0",  # file/dir/URL/glob/screen/0(webcam)
     data=ROOT / "data/coco128.yaml",  # dataset.yaml path
     imgsz=(640, 640),  # inference size (height, width)
@@ -146,7 +157,22 @@ def run(
     # Run inference
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
+    pre_im0 = None
     for path, im, im0s, vid_cap, s in dataset:
+        if pre_im0 is None:
+            frames = np.array(im0s.reshape((1, im0s.shape[0], im0s.shape[1], im0s.shape[2])))
+            # 所有筛选后图片的数组
+            pre_im0 = im0s
+            # np.append(frames, im0s.reshape((1, im0s.shape[0], im0s.shape[1], im0s.shape[2])), axis=0)
+        elif compute_difference_rate(pre_im0, im0s) < 0.05:
+            pre_im0 = im0s
+            continue
+        frames = np.append(
+            frames,
+            im0s.reshape((1, im0s.shape[0], im0s.shape[1], im0s.shape[2])),
+            axis=0,
+        )
+        pre_im0 = im0s
         with dt[0]:
             im = torch.from_numpy(im).to(model.device)
             im = im.half() if model.fp16 else im.float()  # uint8 to fp16/32
@@ -311,7 +337,7 @@ def run(
         LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
-    
+    return frames
 
 
 def parse_opt():
@@ -320,7 +346,8 @@ def parse_opt():
         "--weights",
         nargs="+",
         type=str,
-        default=ROOT / "/home/huaowei/project/videoKpDetection/yolov5_2023/train_res/ppt_cdla_zr_500_1/weights/best.pt",
+        default=ROOT
+        / "/home/huaowei/project/videoKpDetection/yolov5_2023/train_res/ppt_cdla_zr_500_1/weights/best.pt",
         help="model path or triton URL",
     )
     parser.add_argument(
