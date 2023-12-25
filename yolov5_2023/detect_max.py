@@ -75,7 +75,7 @@ from utils.torch_utils import select_device, smart_inference_mode
 
 @smart_inference_mode()
 def run(
-    weights=ROOT / "/home/huaowei/project/videoKpDetection/yolov5_2023/train_res/ppt_cdla_zr_500_1/weights/best.pt",  # model path or triton URL
+    weights=ROOT / "train_res/ppt_cdla_zr_500_1/weights/best.pt",  # model path or triton URL
     source=ROOT / "0",  # file/dir/URL/glob/screen/0(webcam)
     data=ROOT / "data/coco128.yaml",  # dataset.yaml path
     imgsz=(640, 640),  # inference size (height, width)
@@ -322,7 +322,7 @@ def parse_opt():
         "--weights",
         nargs="+",
         type=str,
-        default=ROOT / "/home/huaowei/project/videoKpDetection/yolov5_2023/train_res/ppt_cdla_zr_500_1/weights/best.pt",
+        default=ROOT / "train_res/ppt_cdla_zr_500_1/weights/best.pt",
         help="model path or triton URL",
     )
     parser.add_argument(
