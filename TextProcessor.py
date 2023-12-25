@@ -5,18 +5,18 @@ import sys
 import jieba
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from nltk.tokenize import word_tokenize
+# from nltk.tokenize import word_tokenize
 
 
 class TextProcessor:
     def __init__(self, video_name):
         self.video_name = video_name
-        self.image_dir = os.path.join("new_yolo_res", video_name)
-        self.label_dir = os.path.join("new_yolo_res", video_name, "labels")
+        self.image_dir = os.path.join("./new_yolo_res", video_name)
+        self.label_dir = os.path.join("./new_yolo_res", video_name, "labels")
         self.time_interval = 10
-        self.input_dir = os.path.join("result_all_txt", video_name)
-        self.output_dir = os.path.join("label_hb_txt", video_name)
-        self.folder_path = os.path.join("result_all_txt", video_name)
+        self.input_dir = os.path.join("./result_all_txt", video_name)
+        self.output_dir = os.path.join("./label_hb_txt", video_name)
+        self.folder_path = os.path.join("./result_all_txt", video_name)
         self.image_files = [f for f in os.listdir(self.image_dir) if f.endswith(".jpg")]
         self.nums_pic = len(self.image_files)
         self.label_files = [f for f in os.listdir(self.label_dir) if f.endswith(".txt")]
@@ -43,7 +43,7 @@ class TextProcessor:
             # 调用函数合并连续数字
             merged_ranges = self.merge_continuous_numbers()
             # 打印结果
-            print(merged_ranges)
+            # print(merged_ranges)
 
     def merge_continuous_numbers(self):
         ranges = []
@@ -85,13 +85,18 @@ class TextProcessor:
                 # 用于存储结果的列表
                 result2 = []
                 # 遍历每个字符串
-                words2 = list(jieba.cut(text)) + word_tokenize(text)
+
+                print(text)
+                words2 = list(jieba.cut(text, cut_all=False))
+                # print(words2)
+                # + word_tokenize(text)
+                # 过滤空格和换行符
                 words2 = [
-                    word
-                    for word in words2
-                    if re.match(r"^[\u4e00-\u9fa5a-zA-Z0-9]+$", word) and len(word) > 3
-                ] + word_tokenize(text)
-                print(words2)
+                    word for word in words2 if word.strip() != "" and word != "\n"
+                ]
+
+                # + word_tokenize(text)
+                # print(words2)
                 for item in words2:
                     # 初始化当前子集
                     subset = []
@@ -116,9 +121,11 @@ class TextProcessor:
                 result2 = [item for item in result2 if len(item) >= 2]
                 # print(result2)
                 my_txt = " ".join(result2)
+
+                # my_txt = " ".join(words2)
                 # print(my_txt)
                 texts.append(my_txt)
-        print(texts)
+        # print(texts)
         return texts
 
     def calculate_similarity(self, texts):
@@ -131,7 +138,7 @@ class TextProcessor:
         similarity_scores = [similarity_scores[i - 1][i] for i in range(1, self.textL)]
         print(similarity_scores)
         sorted_data = sorted(enumerate(similarity_scores), key=lambda x: x[1])
-        lowest_10 = [item for item in sorted_data if item[1] < 0.2 and item[0] > 1]
+        lowest_10 = [item for item in sorted_data if item[1] < 0.3 and item[0] > 1]
         print("low10:")
         print(lowest_10)
         data = lowest_10
@@ -155,8 +162,14 @@ class TextProcessor:
 
     def which_file(self, xb):
         files = os.listdir(self.folder_path)
-        if len(files) >= xb:
-            res_file = files[xb]  # 第2个文件，索引从0开始
+
+        # 按照文件名中的数字部分从小到大排序
+        sorted_files = sorted(
+            files, key=lambda x: int(os.path.splitext(x)[0].split("_")[-1])
+        )
+        if len(sorted_files) >= xb:
+            res_file = sorted_files[xb]  # 第2个文件，索引从0开始
+            # print(sorted_files[0])
             file_order = int(os.path.splitext(res_file)[0].split("_")[-1])
             return file_order - 1
         else:
@@ -179,6 +192,7 @@ class TextProcessor:
             ]
         )
         output_list.append((input_list[-1][0] + 1, maxnum))
+        print(output_list)
         return output_list
 
     def clear_txt_files(self, directory_path):
