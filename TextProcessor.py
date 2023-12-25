@@ -85,6 +85,7 @@ class TextProcessor:
                 # 用于存储结果的列表
                 result2 = []
                 # 遍历每个字符串
+
                 print(text)
                 words2 = list(jieba.cut(text, cut_all=False))
                 # print(words2)
@@ -120,6 +121,7 @@ class TextProcessor:
                 result2 = [item for item in result2 if len(item) >= 2]
                 # print(result2)
                 my_txt = " ".join(result2)
+
                 # my_txt = " ".join(words2)
                 # print(my_txt)
                 texts.append(my_txt)
@@ -160,6 +162,7 @@ class TextProcessor:
 
     def which_file(self, xb):
         files = os.listdir(self.folder_path)
+
         # 按照文件名中的数字部分从小到大排序
         sorted_files = sorted(
             files, key=lambda x: int(os.path.splitext(x)[0].split("_")[-1])
