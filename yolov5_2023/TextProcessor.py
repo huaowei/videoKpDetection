@@ -14,9 +14,9 @@ class TextProcessor:
         self.image_dir = os.path.join("./yolo_res", video_name)
         self.label_dir = os.path.join("./yolo_res", video_name, "labels")
         self.time_interval = 10
-        self.input_dir = os.path.join("../result_all_txt", video_name)
-        self.output_dir = os.path.join("../label_hb_txt", video_name)
-        self.folder_path = os.path.join("../result_all_txt", video_name)
+        self.input_dir = os.path.join("./result_all_txt", video_name)
+        self.output_dir = os.path.join("./label_hb_txt", video_name)
+        self.folder_path = os.path.join("./result_all_txt", video_name)
         self.image_files = [f for f in os.listdir(self.image_dir) if f.endswith(".jpg")]
         self.label_files = [f for f in os.listdir(self.label_dir) if f.endswith(".txt")]
         self.nums_pic = len(self.label_files)

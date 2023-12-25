@@ -28,7 +28,7 @@ sor = read_db.DB(
     database="self_adaptive_learning",
     cursorclass=pymysql.cursors.DictCursor,
 )
-stopwords_filepath = "v0.0/stopwords.txt"
+stopwords_filepath = "./stopwords.txt"
 
 # 结果保存目录
 data_filename = "video_yolo_result/labels/01_001.txt"

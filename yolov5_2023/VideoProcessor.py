@@ -11,12 +11,12 @@ import torch
 import detect_max
 
 class VideoProcessor:
-    def __init__(self, video_name, input_directory="../video", interval_seconds=10):
+    def __init__(self, video_name, input_directory="./video", interval_seconds=10):
         self.video_name = video_name
         self.input_directory = input_directory
         self.interval_seconds = interval_seconds
         self.video_filename = f"{self.video_name}.mp4"
-        self.result_folder = os.path.join("../result_all_txt", self.video_name)
+        self.result_folder = os.path.join("./result_all_txt", self.video_name)
         self.video_folder = os.path.join(self.input_directory, self.video_filename)
         self.yolo_folder = "./yolo_res"
         os.makedirs(self.result_folder, exist_ok=True)
