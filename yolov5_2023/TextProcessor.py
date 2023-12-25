@@ -11,53 +11,80 @@ from sklearn.metrics.pairwise import cosine_similarity
 class TextProcessor:
     def __init__(self, video_name):
         self.video_name = video_name
-        self.image_dir = os.path.join("./new_yolo_res", video_name)
-        self.label_dir = os.path.join("./new_yolo_res", video_name, "labels")
+        self.image_dir = os.path.join("./yolo_res", video_name)
+        self.label_dir = os.path.join("./yolo_res", video_name, "labels")
         self.time_interval = 10
         self.input_dir = os.path.join("./result_all_txt", video_name)
         self.output_dir = os.path.join("./label_hb_txt", video_name)
         self.folder_path = os.path.join("./result_all_txt", video_name)
         self.image_files = [f for f in os.listdir(self.image_dir) if f.endswith(".jpg")]
-        self.nums_pic = len(self.image_files)
         self.label_files = [f for f in os.listdir(self.label_dir) if f.endswith(".txt")]
+        self.nums_pic = len(self.label_files)
+        self.no_labels_list = []
         self.number_list = []
         self.textL = 0
 
-    def find_missing_files(self):
-        for img_file in self.image_files:
-            txt_file = img_file[:-4] + ".txt"
-            if txt_file not in self.label_files:
-                file_name = os.path.splitext(img_file)[0]
-                file_name = file_name.split("_")[-1]
-                if file_name.isdigit() and len(file_name) == 3:
-                    self.number_list.append(int(file_name))
-                    try:
-                        print(img_file)
-                        os.remove(os.path.join("results", self.video_name, img_file))
-                        print(f"{img_file} 图片已被删除")
-                        os.remove(os.path.join(self.folder_path, txt_file))
-                        print(f"{txt_file} 文件已被删除")
-                    except Exception as e:
-                        continue
-        if self.number_list:
-            # 调用函数合并连续数字
-            merged_ranges = self.merge_continuous_numbers()
-            # 打印结果
-            # print(merged_ranges)
+    def check_first_column(self,file_path):
+        with open(file_path, 'r') as file:
+            lines = file.readlines()
 
-    def merge_continuous_numbers(self):
-        ranges = []
-        start = end = self.number_list[0]
+        for line in lines:
+            # 检查是否存在至少一个分隔符
+            if not line.split():
+                continue
+            first_digit = int(line.split()[0])
+            if first_digit in {0, 1, 2}:
+                return False
+        return True
 
-        for num in self.number_list[1:]:
-            if num == end + 1:
-                end = num
-            else:
-                ranges.append([start, end])
-                start = end = num
+    def find_files_without_digits(self,directory_path):
+        files_without_digits = []
+        for filename in os.listdir(directory_path):
+            if filename.endswith('.txt'):
+                file_path = os.path.join(directory_path, filename)
+                if self.check_first_column(file_path):
+                    files_without_digits.append(filename)
+                    self.number_list.append(os.path.splitext(filename)[0].split("_")[-1])
+                    os.remove(file_path)
+                    os.remove(os.path.join(self.input_dir,filename))
+        print(self.number_list) 
+        return files_without_digits
+    
+    # def find_missing_files(self):
+    #     for img_file in self.image_files:
+    #         txt_file = img_file[:-4] + ".txt"
+    #         if txt_file not in self.label_files:
+    #             file_name = os.path.splitext(img_file)[0]
+    #             file_name = file_name.split("_")[-1]
+    #             if file_name.isdigit() and len(file_name) == 3:
+    #                 self.number_list.append(int(file_name))
+    #                 try:
+    #                     print(img_file)
+    #                     os.remove(os.path.join("results", self.video_name, img_file))
+    #                     print(f"{img_file} 图片已被删除")
+    #                     os.remove(os.path.join(self.folder_path, txt_file))
+    #                     print(f"{txt_file} 文件已被删除")
+    #                 except Exception as e:
+    #                     continue
+    #     if self.number_list:
+    #         # 调用函数合并连续数字
+    #         merged_ranges = self.merge_continuous_numbers()
+    #         # 打印结果
+    #         # print(merged_ranges)
 
-        ranges.append([start, end])
-        return ranges
+    # def merge_continuous_numbers(self):
+    #     ranges = []
+    #     start = end = self.number_list[0]
+
+    #     for num in self.number_list[1:]:
+    #         if num == end + 1:
+    #             end = num
+    #         else:
+    #             ranges.append([start, end])
+    #             start = end = num
+
+    #     ranges.append([start, end])
+    #     return ranges
 
     def point_not_in_ranges(self, point, ranges):
         for r in ranges:
@@ -72,6 +99,7 @@ class TextProcessor:
         )
         self.textL = len(txt_files)
         for file in txt_files:
+            print(file)
             file_path = os.path.join(self.folder_path, file)
             with open(file_path, "r", encoding="utf-8") as f:
                 text = f.read()
@@ -218,7 +246,7 @@ class TextProcessor:
         )
 
     def process_knowledge_points(self):
-        self.find_missing_files()
+        self.no_labels_list = self.find_files_without_digits(self.label_dir)
         knowledge_points = self.generate_output_list(
             self.process_similarity_scores(
                 self.calculate_similarity(self.read_text_files())
