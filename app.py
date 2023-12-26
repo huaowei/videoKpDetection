@@ -31,6 +31,8 @@ app.config["DOWNLOAD_TUPLE_FILE"] = DOWNLOAD_TUPLE_FILE
 # 解决跨域问题
 cors = CORS()
 cors.init_app(app, resource={r"/*": {"origins": "*"}})
+
+
 # res_list_text = None
 # res_tp_text = None
 @app.route("/process", methods=["POST"])

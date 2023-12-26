@@ -9,6 +9,7 @@ import unicodedata
 from paddleocr import PaddleOCR
 import torch
 import detect_max
+
 from skimage.metrics import structural_similarity as ssim
 
 
@@ -25,7 +26,6 @@ class VideoProcessor:
         os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
         self.ocr = None
         self.similarity_threshold = 0.9
-
     def clean_filename(self, filename):
         cleaned_filename = re.sub(r"[^\w\-_.() ]", "", filename)
         cleaned_filename = (
@@ -87,6 +87,7 @@ class VideoProcessor:
         _, thresh = cv2.threshold(diff, 25, 255, cv2.THRESH_BINARY)
         non_zero_count = cv2.countNonZero(thresh)
         return non_zero_count / (frame1.shape[0] * frame1.shape[1])
+
 
     def extract_frames(self, video_file):
         cap = cv2.VideoCapture(video_file)
