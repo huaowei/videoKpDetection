@@ -427,7 +427,7 @@ class KnowledgePointProcessor:
         l2_id = sorted(l2_id, key=lambda x: x["kp_id"])
         # 存放有效的子节点序号
         effective_list = []
-        
+
         for item in l2_id:
             kp_id = item["kp_id"]
             effective_list.append(self.sor.get_all_2(query_l2, (kp_id,)))

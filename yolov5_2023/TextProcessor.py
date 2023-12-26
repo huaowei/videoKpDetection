@@ -12,7 +12,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 class TextProcessor:
     def __init__(self, video_name):
         self.video_name = video_name
-        self.video_path = os.path.join("./video", video_name+".mp4")
+        self.video_path = os.path.join("./video", video_name + ".mp4")
         self.image_dir = os.path.join("./yolo_res", video_name)
         self.label_dir = os.path.join("./yolo_res", video_name, "labels")
         self.time_interval = 1
@@ -31,7 +31,9 @@ class TextProcessor:
         cap = cv2.VideoCapture(self.video_path)
 
         # 获取视频的总帧数
-        self.total_frames = int(int(cap.get(cv2.CAP_PROP_FRAME_COUNT))/int(cap.get(cv2.CAP_PROP_FPS)))
+        self.total_frames = int(
+            int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) / int(cap.get(cv2.CAP_PROP_FPS))
+        )
 
         # 关闭视频文件
         cap.release()
@@ -45,7 +47,7 @@ class TextProcessor:
             if not line.split():
                 continue
             first_digit = int(line.split()[0])
-            if first_digit in {0, 1, 2}:
+            if first_digit in {1, 2, 4}:
                 return False
         return True
 
@@ -254,7 +256,7 @@ class TextProcessor:
         merged_content = []
         for idx in range(start_idx, end_idx + 1):
             if idx not in self.number_list:
-                file_pattern = f"*_{idx:03d}.txt"
+                file_pattern = f"*_{idx}.txt"
                 matching_files = glob.glob(os.path.join(self.input_dir, file_pattern))
                 for matching_file in matching_files:
                     with open(matching_file, "r", encoding="utf-8") as file:
@@ -287,7 +289,7 @@ class TextProcessor:
         strings = []
         for idx, (start_idx, end_idx) in enumerate(knowledge_points):
             knowledge_start_time = self.which_file(start_idx)
-            knowledge_end_time = self.which_file(end_idx+1)
+            knowledge_end_time = self.which_file(end_idx + 1)
             # if start_idx != 1:
             #     start_idx = start_idx + 1
             end_idx = end_idx
