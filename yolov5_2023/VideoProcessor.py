@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import glob
 from multiprocessing import Process, Queue
 import os
 import sys
@@ -26,6 +27,7 @@ class VideoProcessor:
         os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
         self.ocr = None
         self.similarity_threshold = 0.9
+
     def clean_filename(self, filename):
         cleaned_filename = re.sub(r"[^\w\-_.() ]", "", filename)
         cleaned_filename = (
@@ -88,9 +90,30 @@ class VideoProcessor:
         non_zero_count = cv2.countNonZero(thresh)
         return non_zero_count / (frame1.shape[0] * frame1.shape[1])
 
+    def clear_txt_files(self, directory_path):
+        # 检查目录是否存在
+        if not os.path.exists(directory_path):
+            print(f"目录 '{directory_path}' 不存在。")
+            return
+
+        # 获取目录中所有的 txt 文件
+        txt_files = glob.glob(os.path.join(directory_path, "*.txt"))
+
+        if not txt_files:
+            print(f"目录 '{directory_path}' 中没有找到任何 txt 文件。")
+            return
+
+        # 清空每个 txt 文件
+        for txt_file in txt_files:
+            with open(txt_file, "w") as file:
+                file.write("")
+
+        print(f"成功清空目录 '{directory_path}' 中的所有 txt 文件。")
 
     def extract_frames(self, video_file):
         cap = cv2.VideoCapture(video_file)
+        self.clear_txt_files(os.path.join(self.yolo_folder, self.video_name, "labels"))
+
         if not cap.isOpened():
             print(f"Unable to open video file: {video_file}")
             return
@@ -117,7 +140,7 @@ class VideoProcessor:
         # 终止进程
         # detect_process.terminate()  # 终止进程
         # detect_process.join()  # 等待进程结束
-        
+
         frames = queue.get()
         print(frames, type(frames), frames.shape)
         detect_process.terminate()
@@ -154,46 +177,46 @@ class VideoProcessor:
         #     if not ret:
         #         break
 
-                # if frame_count % interval_frames == 0:
-                #     print(frame_count)
-                #     video_name = os.path.splitext(os.path.basename(video_file))[0]
-                #     cleaned_video_name = self.clean_filename(video_name)
-                #     if (
-                #         prev_frame is not None
-                #         and self.compute_difference_rate(frame, prev_frame) <= 0.1
-                #     ):
-                #         result = t_res
-                #         print(
-                #             f"Frame {frame_count} is similar to the previous frame. Skipping..."
-                #         )
-                #     else:
-                #         result = self.ocr.ocr(frame)
-                #         t_res = result
+        # if frame_count % interval_frames == 0:
+        #     print(frame_count)
+        #     video_name = os.path.splitext(os.path.basename(video_file))[0]
+        #     cleaned_video_name = self.clean_filename(video_name)
+        #     if (
+        #         prev_frame is not None
+        #         and self.compute_difference_rate(frame, prev_frame) <= 0.1
+        #     ):
+        #         result = t_res
+        #         print(
+        #             f"Frame {frame_count} is similar to the previous frame. Skipping..."
+        #         )
+        #     else:
+        #         result = self.ocr.ocr(frame)
+        #         t_res = result
 
-                # if prev_frame is not None and self.image_similarity(frame, prev_frame) >= self.similarity_threshold:
-                #     result = t_res
-                #     print(f"Frame {frame_count} is similar to the previous frame. Skipping...")
-                # else:
-                #     result = self.ocr.ocr(frame)
-                #     t_res = result
+        # if prev_frame is not None and self.image_similarity(frame, prev_frame) >= self.similarity_threshold:
+        #     result = t_res
+        #     print(f"Frame {frame_count} is similar to the previous frame. Skipping...")
+        # else:
+        #     result = self.ocr.ocr(frame)
+        #     t_res = result
 
-            #     merged_text = ""
-            #     for idx in range(len(result)):
-            #         res = result[idx]
-            #         for line in res:
-            #             if line[1][1] > 0.8:
-            #                 new_txt = self.replace_punctuation_with_space(line[1][0])
-            #                 merged_text += new_txt + "\n"
-            #                 print(new_txt)
+        #     merged_text = ""
+        #     for idx in range(len(result)):
+        #         res = result[idx]
+        #         for line in res:
+        #             if line[1][1] > 0.8:
+        #                 new_txt = self.replace_punctuation_with_space(line[1][0])
+        #                 merged_text += new_txt + "\n"
+        #                 print(new_txt)
 
-            #     txt_filename = f"{cleaned_video_name}_{image_count:03d}" + ".txt"
-            #     txt_filepath = os.path.join(self.result_folder, txt_filename)
+        #     txt_filename = f"{cleaned_video_name}_{image_count:03d}" + ".txt"
+        #     txt_filepath = os.path.join(self.result_folder, txt_filename)
 
-            #     with open(txt_filepath, "w", encoding="utf-8") as txt_file:
-            #         txt_file.write(merged_text)
-            #     image_count += 1
+        #     with open(txt_filepath, "w", encoding="utf-8") as txt_file:
+        #         txt_file.write(merged_text)
+        #     image_count += 1
 
-            # frame_count += 1
+        # frame_count += 1
 
         # cap.release()
 

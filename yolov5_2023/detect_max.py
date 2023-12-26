@@ -45,7 +45,6 @@ if str(ROOT) not in sys.path:
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 
-
 from utils.plotting import Annotator, colors, save_one_box
 
 from models.common import DetectMultiBackend
@@ -86,8 +85,8 @@ def compute_difference_rate(img1, img2):
 
 @smart_inference_mode()
 def run(
-
-    weights=ROOT / "train_res/ppt_cdla_zr_500_1/weights/best.pt",  # model path or triton URL
+    weights=ROOT
+    / "train_res/ppt_cdla_zr_500_1/weights/best.pt",  # model path or triton URL
     source=ROOT / "0",  # file/dir/URL/glob/screen/0(webcam)
     data=ROOT / "data/coco128.yaml",  # dataset.yaml path
     imgsz=(640, 640),  # inference size (height, width)
@@ -101,7 +100,6 @@ def run(
     save_conf=False,  # save confidences in --save-txt labels
     save_crop=False,  # save cropped prediction boxes
     nosave=True,  # do not save images/videos
-    nosave=True,  # do not save images/videos
     classes=None,  # filter by class: --class 0, or --class 0 2 3
     agnostic_nms=False,  # class-agnostic NMS
     augment=False,  # augmented inference
@@ -109,7 +107,6 @@ def run(
     update=False,  # update all models
     project=ROOT / "runs/detect",  # save results to project/name
     name="exp",  # save results to project/name
-    exist_ok=True,  # existing project/name ok, do not increment
     exist_ok=True,  # existing project/name ok, do not increment
     line_thickness=0.01,  # bounding box thickness (pixels)
     hide_labels=False,  # hide labels
@@ -164,7 +161,9 @@ def run(
     pre_im0 = None
     for path, im, im0s, vid_cap, s in dataset:
         if pre_im0 is None:
-            frames = np.array(im0s.reshape((1, im0s.shape[0], im0s.shape[1], im0s.shape[2])))
+            frames = np.array(
+                im0s.reshape((1, im0s.shape[0], im0s.shape[1], im0s.shape[2]))
+            )
             # 所有筛选后图片的数组
             pre_im0 = im0s
             # np.append(frames, im0s.reshape((1, im0s.shape[0], im0s.shape[1], im0s.shape[2])), axis=0)
@@ -229,11 +228,11 @@ def run(
 
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # im.jpg
-            txt_path = str(save_dir / "labels" / p.stem) + (
-
-                "" if dataset.mode == "image" else f"_{frame:03d}_"
-
-            )+str(pic_num)  # im.txt
+            txt_path = (
+                str(save_dir / "labels" / p.stem)
+                + ("" if dataset.mode == "image" else f"_{frame:03d}_")
+                + str(pic_num)
+            )  # im.txt
             pic_num += 1
 
             s += "%gx%g " % im.shape[2:]  # print string
@@ -269,7 +268,7 @@ def run(
                             line = (
                                 (cls, *xywh, conf) if save_conf else (cls, *xywh)
                             )  # label format
-                            with open(f"{txt_path}.txt", "w") as f:
+                            with open(f"{txt_path}.txt", "a") as f:
                                 f.write(("%g " * len(line)).rstrip() % line + "\n")
 
                         if save_img or save_crop or view_img:  # Add bbox to image
@@ -347,7 +346,6 @@ def run(
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
 
     return frames
-
 
 
 def parse_opt():
