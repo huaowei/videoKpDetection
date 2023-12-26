@@ -137,7 +137,8 @@ class VideoProcessor:
                         merged_text += new_txt + "\n"
                         print(new_txt)
 
-            txt_filename = f"{cleaned_video_name}_{image_count:03d}" + ".txt"
+            txt_filename = f"{cleaned_video_name}_{image_count}" + ".txt"
+
             txt_filepath = os.path.join(self.result_folder, txt_filename)
 
             with open(txt_filepath, "w", encoding="utf-8") as txt_file:

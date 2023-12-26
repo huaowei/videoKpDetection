@@ -2,6 +2,7 @@ import glob
 import os
 import re
 import sys
+import cv2
 import jieba
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -11,6 +12,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 class TextProcessor:
     def __init__(self, video_name):
         self.video_name = video_name
+        self.video_path = os.path.join("./video", video_name+".mp4")
         self.image_dir = os.path.join("./yolo_res", video_name)
         self.label_dir = os.path.join("./yolo_res", video_name, "labels")
         self.time_interval = 1
@@ -24,8 +26,18 @@ class TextProcessor:
         self.number_list = []
         self.textL = 0
 
-    def check_first_column(self,file_path):
-        with open(file_path, 'r') as file:
+    def get_total_frames(self):
+        # 打开视频文件
+        cap = cv2.VideoCapture(self.video_path)
+
+        # 获取视频的总帧数
+        self.total_frames = int(int(cap.get(cv2.CAP_PROP_FRAME_COUNT))/int(cap.get(cv2.CAP_PROP_FPS)))
+
+        # 关闭视频文件
+        cap.release()
+
+    def check_first_column(self, file_path):
+        with open(file_path, "r") as file:
             lines = file.readlines()
 
         for line in lines:
@@ -37,19 +49,23 @@ class TextProcessor:
                 return False
         return True
 
-    def find_files_without_digits(self,directory_path):
+    def find_files_without_digits(self, directory_path):
         files_without_digits = []
         for filename in os.listdir(directory_path):
-            if filename.endswith('.txt'):
+            if filename.endswith(".txt"):
                 file_path = os.path.join(directory_path, filename)
                 if self.check_first_column(file_path):
                     files_without_digits.append(filename)
-                    self.number_list.append(int(os.path.splitext(filename)[0].split("_")[-1]))
+
+                    self.number_list.append(
+                        int(os.path.splitext(filename)[0].split("_")[-1])
+                    )
                     # os.remove(file_path)
                     # os.remove(os.path.join(self.input_dir,filename))
-        print(self.number_list) 
+        # print(self.number_list)
+
         return files_without_digits
-    
+
     # def find_missing_files(self):
     #     for img_file in self.image_files:
     #         txt_file = img_file[:-4] + ".txt"
@@ -114,11 +130,13 @@ class TextProcessor:
                 result2 = []
                 # 遍历每个字符串
                 print(text)
-                words2 = list(jieba.cut(text,cut_all=False)) 
+                words2 = list(jieba.cut(text, cut_all=False))
                 # print(words2)
                 # + word_tokenize(text)
                 # 过滤空格和换行符
-                words2 = [word for word in words2 if word.strip() != '' and word != '\n']
+                words2 = [
+                    word for word in words2 if word.strip() != "" and word != "\n"
+                ]
 
                 # + word_tokenize(text)
                 # print(words2)
@@ -176,44 +194,50 @@ class TextProcessor:
                 add_item = False
             elif item[0] in [x[0] for x in new_data]:
                 add_item = False
-            else:
-                for existing_item in new_data:
-                    if abs(item[0] - existing_item[0]) <= 1:
-                        add_item = False
-                        break
+
+            # else:
+            #     for existing_item in new_data:
+            #         if abs(item[0] - existing_item[0]) <= 1:
+            #             add_item = False
+            #             break
+
             if add_item:
                 new_data.append(item)
 
         return new_data
 
     def which_file(self, xb):
-        files = os.listdir(self.folder_path)
+        xb = xb - 1
+        files = os.listdir(self.label_dir)
         # 按照文件名中的数字部分从小到大排序
-        sorted_files = sorted(files, key=lambda x: int(os.path.splitext(x)[0].split("_")[-1]))
-        if len(sorted_files) >= xb:
+        sorted_files = sorted(
+            files, key=lambda x: int(os.path.splitext(x)[0].split("_")[-2])
+        )
+        if len(sorted_files) > xb:
             res_file = sorted_files[xb]  # 第2个文件，索引从0开始
             # print(sorted_files[0])
-            file_order = int(os.path.splitext(res_file)[0].split("_")[-1])
-            return file_order - 1
+            file_order = int(os.path.splitext(res_file)[0].split("_")[-2])
+            # print(file_order)
+            return file_order
         else:
-            print(f"下标错误，目录中没有足够的文件")
-            return -1
+            return self.total_frames
 
     def generate_output_list(self, new_data):
         # 遍历列表，并修改第一个元组的值
         new_data = sorted(new_data, key=lambda x: x[0])
-        for index, (first_value, second_value) in enumerate(new_data):
-            new_data[index] = (self.which_file(first_value), second_value)
+        # for index, (first_value, second_value) in enumerate(new_data):
+        #     new_data[index] = (self.which_file(first_value), second_value)
         print(new_data)
         input_list = new_data
         maxnum = self.nums_pic
-        output_list = [(1, input_list[0][0] + 1)]
+        output_list = [(1, input_list[0][0])]
         output_list.extend(
             [
-                (input_list[i][0] + 1, input_list[i + 1][0] + 1)
-                for i in range(len(input_list) - 1)
+                (input_list[i - 1][0] + 1, input_list[i][0])
+                for i in range(1, len(input_list))
             ]
         )
+        # output_list.append((input_list[-2][0]+1,input_list[-1][0]))
         output_list.append((input_list[-1][0] + 1, maxnum))
         print(output_list)
         return output_list
@@ -255,21 +279,22 @@ class TextProcessor:
             )
         )
         # print(knowledge_points)
+        self.get_total_frames()
         start_time = 0
 
         self.clear_txt_files(self.output_dir)
 
         strings = []
         for idx, (start_idx, end_idx) in enumerate(knowledge_points):
-            knowledge_start_time = start_time + start_idx * self.time_interval
-            knowledge_end_time = start_time + end_idx * self.time_interval
-            if start_idx != 1:
-                start_idx = start_idx + 1
+            knowledge_start_time = self.which_file(start_idx)
+            knowledge_end_time = self.which_file(end_idx+1)
+            # if start_idx != 1:
+            #     start_idx = start_idx + 1
             end_idx = end_idx
             self.merge_txt_files(start_idx, end_idx)
             strings.append(
-                f"知识点 {idx + 1}: 开始帧图片索引：{start_idx}，结束帧图片索引：{end_idx}，"
-                f"开始时间：{knowledge_start_time}秒，结束时间：{knowledge_end_time}秒."
+                # f"知识点 {idx + 1}: 开始帧图片索引：{knowledge_start_time}，结束帧图片索引：{knowledge_end_time}，"
+                f"知识点 {idx + 1}: 开始时间：{knowledge_start_time}秒，结束时间：{knowledge_end_time}秒."
             )
         print(strings)
 
