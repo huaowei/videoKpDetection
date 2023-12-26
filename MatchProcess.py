@@ -435,7 +435,6 @@ class KnowledgePointProcessor:
         # print(effective_list)
         # 创建新的数据结构用于存储筛选后的元素
         filtered_data = {}
-        # print(effective_list)
         # 遍历数据结构并筛选出内层数据出现在指定的列表中的元素
         for key, inner_dict in eval(data_).items():
             filtered_inner_dict = {}

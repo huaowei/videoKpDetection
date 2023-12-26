@@ -56,12 +56,14 @@ class TextProcessor:
                 file_path = os.path.join(directory_path, filename)
                 if self.check_first_column(file_path):
                     files_without_digits.append(filename)
+
                     self.number_list.append(
                         int(os.path.splitext(filename)[0].split("_")[-1])
                     )
                     # os.remove(file_path)
                     # os.remove(os.path.join(self.input_dir,filename))
         # print(self.number_list)
+
         return files_without_digits
 
     # def find_missing_files(self):
@@ -188,15 +190,17 @@ class TextProcessor:
 
         for item in data:
             add_item = True
-            if item[0] < 2:
+            if item[0] < 1:
                 add_item = False
             elif item[0] in [x[0] for x in new_data]:
                 add_item = False
+
             # else:
             #     for existing_item in new_data:
             #         if abs(item[0] - existing_item[0]) <= 1:
             #             add_item = False
             #             break
+
             if add_item:
                 new_data.append(item)
 
