@@ -159,7 +159,7 @@ def run(
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
     pre_im0 = None
-    for path, im, im0s, vid_cap, s in dataset:
+    for path, im, im0s, vid_cap, s, tf in dataset:
         if pre_im0 is None:
             frames = np.array(
                 im0s.reshape((1, im0s.shape[0], im0s.shape[1], im0s.shape[2]))
@@ -216,7 +216,7 @@ def run(
                 if not csv_path.is_file():
                     writer.writeheader()
                 writer.writerow(data)
-
+        
         # Process predictions
         for i, det in enumerate(pred):  # per image
             seen += 1
@@ -230,7 +230,7 @@ def run(
             save_path = str(save_dir / p.name)  # im.jpg
             txt_path = (
                 str(save_dir / "labels" / p.stem)
-                + ("" if dataset.mode == "image" else f"_{frame:03d}_")
+                + ("" if dataset.mode == "image" else f"_{tf}_{frame:03d}_")
                 + str(pic_num)
             )  # im.txt
             pic_num += 1

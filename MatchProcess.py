@@ -676,7 +676,7 @@ class KnowledgePointProcessor:
 
 
 if __name__ == "__main__":
-    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "4-4"
+    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "3.6"
     processor = KnowledgePointProcessor(video_name_arg)
     processor.process_knowledge_points()
     processor.dict_convert_tuple()
