@@ -39,12 +39,14 @@ class TextProcessor:
         else:
             return None
     def get_total_frames(self):
+
         # 获取目录下的所有文件
         files = os.listdir(self.label_dir)
         
         # 如果目录下没有文件，返回None
         if not files:
             return None
+
 
         # 获取第一个文件的完整路径
         first_file_path = os.path.join(self.label_dir, files[0])
