@@ -10,11 +10,12 @@ from read_db import DB  # Assuming read_db is a module with a class named DB
 
 
 class KnowledgePointProcessor:
-    def __init__(self, video_name, internal_time=10):
+    def __init__(self, video_name, internal_time=1):
         self.video_name = video_name
         self.internal_time = internal_time
         self.input_dir = os.path.join("label_hb_txt", video_name)
         self.directory_path = os.path.join("label_hb_txt", video_name)
+        self.label_dir = os.path.join("./yolo_res", video_name, "labels")
         self.stopwords_filepath = "./stopwords.txt"
         self.result_filename = f"result/{video_name}_0.txt"
         self.flag_have_first_title = False
@@ -30,6 +31,35 @@ class KnowledgePointProcessor:
         self.knowledge_points = self.split_kp_word()
         self.selected_knowledge_points = None
         self.tuple_kp_dicts_list = None
+        self.total_frames = 0
+        self.get_total_frames()
+    
+    def get_data_from_file(self,file_path):
+        # 从文件名中提取数据
+        base_name = os.path.basename(file_path)
+        parts = base_name.split('_')
+        
+        # 如果文件名符合要求，返回倒数第二个_前的数据
+        if len(parts) >= 3:
+            print(parts)
+            self.total_frames = parts[-3]
+            print(self.total_frames)
+            return parts[-3]
+        else:
+            return None
+    def get_total_frames(self):
+        # 获取目录下的所有文件
+        files = os.listdir(self.label_dir)
+        
+        # 如果目录下没有文件，返回None
+        if not files:
+            return None
+
+        # 获取第一个文件的完整路径
+        first_file_path = os.path.join(self.label_dir, files[0])
+
+        # 从第一个文件中提取数据
+        self.get_data_from_file(first_file_path)
 
     def find_line_with_largest_number(self, filename):
         max_number = float("-inf")  # Initialize the maximum number as negative infinity
@@ -150,8 +180,8 @@ class KnowledgePointProcessor:
                     kp_id,
                 )
             # print(kp_occurrences[kp_name][0])
-            if kp_occurrences[kp_name][0] < 10:
-                kp_occurrences[kp_name] = (0, kp_id)
+            # if kp_occurrences[kp_name][0] < 10:
+                # kp_occurrences[kp_name] = (0, kp_id)
 
         # Filter and return knowledge points with occurrences greater than 0
         kp_occurrences_filtered = {
@@ -381,7 +411,23 @@ class KnowledgePointProcessor:
         sorted_data = sorted(result, key=self.custom_sort)
 
         return sorted_data
-
+     
+    def which_file(self, xb):  
+        xb = xb - 1
+        files = os.listdir(self.label_dir)
+        # 按照文件名中的数字部分从小到大排序
+        sorted_files = sorted(
+            files, key=lambda x: int(os.path.splitext(x)[0].split("_")[-2])
+        )
+        if len(sorted_files) > xb:
+            res_file = sorted_files[xb]  # 第2个文件，索引从0开始
+            # print(sorted_files[0])
+            file_order = int(os.path.splitext(res_file)[0].split("_")[-2])
+            # print(file_order)
+            return file_order
+        else:
+            return self.total_frames
+    
     def process_knowledge_points(self):
         data_ = self.process_directory()
         print(data_)
@@ -484,6 +530,20 @@ class KnowledgePointProcessor:
             for key, _, _ in sorted_data
         ]
         print("key_list= {}".format(key_list))
+        knowledge_points = key_list
+        strings = []
+        for idx, (start_idx, end_idx) in enumerate(knowledge_points):
+            knowledge_start_time = self.which_file(start_idx)
+            knowledge_end_time = self.which_file(end_idx + 1)
+            # if start_idx != 1:
+            #     start_idx = start_idx + 1
+            end_idx = end_idx
+            # self.merge_txt_files(start_idx, end_idx)
+            strings.append(
+                # f"知识点 {idx + 1}: 开始帧图片索引：{knowledge_start_time}，结束帧图片索引：{knowledge_end_time}，"
+                f"知识点 {idx + 1}: 开始时间：{knowledge_start_time}秒，结束时间：{knowledge_end_time}秒."
+            )
+        print(strings)
         # return self.merge_data_xl_same(selected_knowledge_points)
         self.selected_knowledge_points = sorted_data
 
@@ -676,7 +736,7 @@ class KnowledgePointProcessor:
 
 
 if __name__ == "__main__":
-    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "4-4"
+    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "3.6"
     processor = KnowledgePointProcessor(video_name_arg)
     processor.process_knowledge_points()
     processor.dict_convert_tuple()

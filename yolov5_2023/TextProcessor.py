@@ -25,19 +25,35 @@ class TextProcessor:
         self.no_labels_list = []
         self.number_list = []
         self.textL = 0
+        self.total_frames = 0
 
+    def get_data_from_file(self,file_path):
+        # 从文件名中提取数据
+        base_name = os.path.basename(file_path)
+        parts = base_name.split('_')
+        
+        # 如果文件名符合要求，返回倒数第二个_前的数据
+        if len(parts) >= 3:
+            self.total_frames = parts[-3]
+            return parts[-3]
+        else:
+            return None
     def get_total_frames(self):
-        # 打开视频文件
-        cap = cv2.VideoCapture(self.video_path)
 
-        # 获取视频的总帧数
-        self.total_frames = int(
-            int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) / int(cap.get(cv2.CAP_PROP_FPS))
-        )
+        # 获取目录下的所有文件
+        files = os.listdir(self.label_dir)
+        
+        # 如果目录下没有文件，返回None
+        if not files:
+            return None
 
-        # 关闭视频文件
-        cap.release()
 
+        # 获取第一个文件的完整路径
+        first_file_path = os.path.join(self.label_dir, files[0])
+
+        # 从第一个文件中提取数据
+        self.get_data_from_file(first_file_path)
+    
     def check_first_column(self, file_path):
         with open(file_path, "r") as file:
             lines = file.readlines()
@@ -117,7 +133,7 @@ class TextProcessor:
         )
         self.textL = len(txt_files)
         for file in txt_files:
-            print(file)
+            # print(file)
             file_path = os.path.join(self.folder_path, file)
             with open(file_path, "r", encoding="utf-8") as f:
                 text = f.read()
@@ -131,7 +147,7 @@ class TextProcessor:
                 # 用于存储结果的列表
                 result2 = []
                 # 遍历每个字符串
-                print(text)
+                # print(text)
                 words2 = list(jieba.cut(text, cut_all=False))
                 # print(words2)
                 # + word_tokenize(text)
@@ -182,9 +198,12 @@ class TextProcessor:
         similarity_scores = [similarity_scores[i - 1][i] for i in range(1, self.textL)]
         print(similarity_scores)
         sorted_data = sorted(enumerate(similarity_scores), key=lambda x: x[1])
-        lowest_10 = [item for item in sorted_data if item[1] < 0.3 and item[0] > 1]
+        sorted_data = [(index + 1, value) for index, value in sorted_data]
+        lowest_10 = [item for item in sorted_data if item[1] < 0.2][:10]
         print("low10:")
         print(lowest_10)
+        print("无效节点:")
+        print(self.number_list)
         data = lowest_10
         data = lowest_10 = [item for item in data if item[0] not in self.number_list]
 
@@ -229,7 +248,7 @@ class TextProcessor:
         new_data = sorted(new_data, key=lambda x: x[0])
         # for index, (first_value, second_value) in enumerate(new_data):
         #     new_data[index] = (self.which_file(first_value), second_value)
-        print(new_data)
+        # print(new_data)
         input_list = new_data
         maxnum = self.nums_pic
         output_list = [(1, input_list[0][0])]
@@ -286,7 +305,7 @@ class TextProcessor:
 
         self.clear_txt_files(self.output_dir)
 
-        strings = []
+        # strings = []
         for idx, (start_idx, end_idx) in enumerate(knowledge_points):
             knowledge_start_time = self.which_file(start_idx)
             knowledge_end_time = self.which_file(end_idx + 1)
@@ -294,14 +313,14 @@ class TextProcessor:
             #     start_idx = start_idx + 1
             end_idx = end_idx
             self.merge_txt_files(start_idx, end_idx)
-            strings.append(
-                # f"知识点 {idx + 1}: 开始帧图片索引：{knowledge_start_time}，结束帧图片索引：{knowledge_end_time}，"
-                f"知识点 {idx + 1}: 开始时间：{knowledge_start_time}秒，结束时间：{knowledge_end_time}秒."
-            )
-        print(strings)
+            # strings.append(
+            #     # f"知识点 {idx + 1}: 开始帧图片索引：{knowledge_start_time}，结束帧图片索引：{knowledge_end_time}，"
+            #     # f"知识点 {idx + 1}: 开始时间：{knowledge_start_time}秒，结束时间：{knowledge_end_time}秒."
+            # )
+        # print(strings)
 
 
 if __name__ == "__main__":
-    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "4-4"
+    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "3.6"
     text_processor = TextProcessor(video_name_arg)
     text_processor.process_knowledge_points()

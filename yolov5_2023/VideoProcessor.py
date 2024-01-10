@@ -233,6 +233,6 @@ class VideoProcessor:
 
 
 if __name__ == "__main__":
-    video_name = sys.argv[1] if len(sys.argv) > 1 else "4-4"
+    video_name = sys.argv[1] if len(sys.argv) > 1 else "3.6"
     processor = VideoProcessor(video_name)
     processor.process_all_mp4_files()
