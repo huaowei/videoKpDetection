@@ -131,7 +131,7 @@ class TextProcessor:
         )
         self.textL = len(txt_files)
         for file in txt_files:
-            print(file)
+            # print(file)
             file_path = os.path.join(self.folder_path, file)
             with open(file_path, "r", encoding="utf-8") as f:
                 text = f.read()
@@ -145,7 +145,7 @@ class TextProcessor:
                 # 用于存储结果的列表
                 result2 = []
                 # 遍历每个字符串
-                print(text)
+                # print(text)
                 words2 = list(jieba.cut(text, cut_all=False))
                 # print(words2)
                 # + word_tokenize(text)
@@ -246,7 +246,7 @@ class TextProcessor:
         new_data = sorted(new_data, key=lambda x: x[0])
         # for index, (first_value, second_value) in enumerate(new_data):
         #     new_data[index] = (self.which_file(first_value), second_value)
-        print(new_data)
+        # print(new_data)
         input_list = new_data
         maxnum = self.nums_pic
         output_list = [(1, input_list[0][0])]
@@ -303,7 +303,7 @@ class TextProcessor:
 
         self.clear_txt_files(self.output_dir)
 
-        strings = []
+        # strings = []
         for idx, (start_idx, end_idx) in enumerate(knowledge_points):
             knowledge_start_time = self.which_file(start_idx)
             knowledge_end_time = self.which_file(end_idx + 1)
@@ -311,14 +311,14 @@ class TextProcessor:
             #     start_idx = start_idx + 1
             end_idx = end_idx
             self.merge_txt_files(start_idx, end_idx)
-            strings.append(
-                # f"知识点 {idx + 1}: 开始帧图片索引：{knowledge_start_time}，结束帧图片索引：{knowledge_end_time}，"
-                f"知识点 {idx + 1}: 开始时间：{knowledge_start_time}秒，结束时间：{knowledge_end_time}秒."
-            )
-        print(strings)
+            # strings.append(
+            #     # f"知识点 {idx + 1}: 开始帧图片索引：{knowledge_start_time}，结束帧图片索引：{knowledge_end_time}，"
+            #     # f"知识点 {idx + 1}: 开始时间：{knowledge_start_time}秒，结束时间：{knowledge_end_time}秒."
+            # )
+        # print(strings)
 
 
 if __name__ == "__main__":
-    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "4-4"
+    video_name_arg = sys.argv[1] if len(sys.argv) > 1 else "3.6"
     text_processor = TextProcessor(video_name_arg)
     text_processor.process_knowledge_points()
