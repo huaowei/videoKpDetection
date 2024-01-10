@@ -41,9 +41,7 @@ class KnowledgePointProcessor:
         
         # 如果文件名符合要求，返回倒数第二个_前的数据
         if len(parts) >= 3:
-            print(parts)
             self.total_frames = int(parts[-3])
-            print(self.total_frames)
             return parts[-3]
         else:
             return None
