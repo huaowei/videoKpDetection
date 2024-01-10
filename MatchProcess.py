@@ -42,7 +42,7 @@ class KnowledgePointProcessor:
         # 如果文件名符合要求，返回倒数第二个_前的数据
         if len(parts) >= 3:
             print(parts)
-            self.total_frames = parts[-3]
+            self.total_frames = int(parts[-3])
             print(self.total_frames)
             return parts[-3]
         else:
@@ -532,6 +532,7 @@ class KnowledgePointProcessor:
         print("key_list= {}".format(key_list))
         knowledge_points = key_list
         strings = []
+        partition_res = []
         for idx, (start_idx, end_idx) in enumerate(knowledge_points):
             knowledge_start_time = self.which_file(start_idx)
             knowledge_end_time = self.which_file(end_idx + 1)
@@ -543,9 +544,13 @@ class KnowledgePointProcessor:
                 # f"知识点 {idx + 1}: 开始帧图片索引：{knowledge_start_time}，结束帧图片索引：{knowledge_end_time}，"
                 f"知识点 {idx + 1}: 开始时间：{knowledge_start_time}秒，结束时间：{knowledge_end_time}秒."
             )
+            partition_res.append((knowledge_start_time,knowledge_end_time))
+        print(partition_res)
         print(strings)
         # return self.merge_data_xl_same(selected_knowledge_points)
         self.selected_knowledge_points = sorted_data
+        
+        return partition_res
 
     # 需要将输出的知识点内容转换成五元组内容
     def dict_convert_tuple(self):
